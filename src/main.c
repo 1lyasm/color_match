@@ -273,7 +273,7 @@ enum GameStatus playManual(struct Matrix* mat, struct User *user) {
         --stepCounter;
       }
     }
-    printf("%d. ADIM:\n\tSource: ", stepCounter);
+    printf("%d. step:\n\tSource: ", stepCounter);
     scanf("%d, %d", &xSource, &ySource);
     printf("\tDestination: ");
     scanf("%d, %d", &xDestination, &yDestination);
@@ -282,7 +282,7 @@ enum GameStatus playManual(struct Matrix* mat, struct User *user) {
         xDestination < 0 || xDestination >= mat->n || yDestination < 0 ||
         yDestination >= mat->n || mat->mat[xSource][ySource] == 0 ||
         (xSource == xDestination) + (ySource == yDestination) != 1) {
-      printf("Gecersiz hamle, yeniden dene\n");
+      printf("Invalid move, try again\n");
       --stepCounter;
     } else {
       color = mat->mat[xSource][ySource];
@@ -305,12 +305,12 @@ enum GameStatus playManual(struct Matrix* mat, struct User *user) {
             (y == yDestination && (yDestination == colorYSource ||
                                    yDestination == colorYDestination));
         if (!pathIsEmpty && !connectedColor) {
-          printf("Gecersiz hamle, yeniden dene\n");
+          printf("Invalid move, try again\n");
           --stepCounter;
         } else {
           if (connectedColor) {
             isConnectedArray[color - 1] = 1;
-            printf("\nSayilar eslestirildi\n");
+            printf("\nNumbers are matched\n");
           }
           addToUndoMatrix(undoMatrix, &undoCount, xSource, ySource,
                           xDestination, yDestination);
@@ -330,12 +330,12 @@ enum GameStatus playManual(struct Matrix* mat, struct User *user) {
             x == xDestination &&
             (xDestination == colorXSource || xDestination == colorXDestination);
         if (!pathIsEmpty && !connectedColor) {
-          printf("Gecersiz hamle, yeniden dene\n");
+          printf("Invalid move, try again\n");
           --stepCounter;
         } else {
           if (connectedColor) {
             isConnectedArray[color - 1] = 1;
-            printf("\nSayilar eslestirildi\n");
+            printf("\nNumbers are matched\n");
           }
           addToUndoMatrix(undoMatrix, &undoCount, xSource, ySource,
                           xDestination, yDestination);
@@ -349,9 +349,9 @@ enum GameStatus playManual(struct Matrix* mat, struct User *user) {
     gameStatus = getGameStatus(mat, isConnectedArray, colorPositions);
   }
   if (gameStatus == SUCCESS)
-    printf("\nKazandiniz\n");
+    printf("\nYou won\n");
   else if (gameStatus == FAILURE)
-    printf("\nKaybettiniz\n");
+    printf("\nYou lost\n");
   free(colorPositions);
   free(isConnectedArray);
   return gameStatus;
@@ -363,13 +363,13 @@ enum GameStatus playManual(struct Matrix* mat, struct User *user) {
  */
 void printGameInfo(struct User* user) {
   printf(
-      "\tAd: %s\n\tOynama zamani: %d:%d\n\tMatris boyutu: %d x %d\n\tOlusturma "
-      "sekli: %s\n\tOynama sekli: %s\n\tUndo sayisi: %d\n\tSkor: %d\n\tSonuc: "
+      "\tName: %s\n\tGame duration: %d:%d\n\tMatrix size: %d x %d\n\tCreation "
+      "type: %s\n\tGame mode: %s\n\tUndo count: %d\n\tScore: %d\n\tResult: "
       "%s\n\n",
       user->username, user->duration / 60, user->duration % 60, user->n,
-      user->n, user->makeMode == 'r' ? "random" : "dosya",
-      user->playMode == 'a' ? "auto" : "manuel", user->undoCount, user->score,
-      user->status == SUCCESS ? "kazandi" : "kaybetti");
+      user->n, user->makeMode == 'r' ? "random" : "file",
+      user->playMode == 'a' ? "auto" : "manual", user->undoCount, user->score,
+      user->status == SUCCESS ? "won" : "lost");
 }
 
 /*
@@ -704,7 +704,7 @@ void play(struct Matrix* mat, int is_auto, char* username, struct User** users,
   users[*m - 1]->duration = time(0) - startTime;
   computeScore(users[*m - 1]);
   freeMatrix(mat);
-  printf("\nOyun bilgisi:\n");
+  printf("\nGame info:\n");
   printGameInfo(users[*m - 1]);
 }
 
@@ -714,7 +714,7 @@ void play(struct Matrix* mat, int is_auto, char* username, struct User** users,
  */
 int takeN() {
   int n = 0;
-  printf("\nN: ");
+  printf("\nEnter n (matrix size): ");
   scanf("%d", &n);
   return n;
 }
@@ -762,11 +762,11 @@ void makeFromFile(struct Matrix* mat) {
   char fileName[20] = {0};
   int i, j, temp;
   FILE* data;
-  printf("Dosya Adini Giriniz: ");
+  printf("Enter file name: ");
   scanf("%s", fileName);
   data = fopen(fileName, "r");
   if (!data) {
-    printf("Dosya Acilamadi!");
+    printf("File could not be opened\n");
     exit(EXIT_FAILURE);
   }
   while (!feof(data)) {
@@ -787,7 +787,7 @@ struct Matrix* makeMatrix(char makeMode) {
     makeRandom(mat);
   else
     makeFromFile(mat);
-  printf("Matris: \n");
+  printf("Matrix: \n");
   printMatrix(mat);
   return mat;
 }
@@ -799,13 +799,13 @@ struct Matrix* makeMatrix(char makeMode) {
 void runGameMenu(char makeMode, struct User** users, int* m) {
   int choice = 0, isValid = 1;
   char username[64] = {0};
-  printf("Kullanici adi: ");
+  printf("Username: ");
   scanf("%s", username);
   do {
     isValid = 1;
     printf(
-        "\nb. Oyun Menusu:\n\ti. Manuel Modda Oyna:\n\tii. Otomatik Modda "
-        "Oyna:\n\tiii. Ana Menuye Don:\n\nSecim: ");
+        "\nb. Game menu:\n\ti. Play in manual mode:\n\tii. Play in automatic mode:"
+        "\n\tiii. Return to main menu:\n\nChoice: ");
     scanf("%d", &choice);
     switch (choice) {
       case 1:
@@ -819,7 +819,7 @@ void runGameMenu(char makeMode, struct User** users, int* m) {
       default:
         isValid = 0;
     }
-  } while (isValid == 0 && printf("\n\nYanlis girdi, yeniden dene\n\n"));
+  } while (isValid == 0 && printf("\n\nInvalid input, try again\n\n"));
 }
 
 /*
@@ -846,7 +846,7 @@ void printUserScores(struct User** users, int* m) {
     if (!visitedArray[i]) {
       gameCount = 0;
       memcpy(currentUsername, users[i]->username, 64);
-      printf("%s-nin skorlari:\n", users[i]->username);
+      printf("Scores of %s:\n", users[i]->username);
       for (j = i; j < *m; ++j) {
         if (strcmp(currentUsername, users[j]->username) == 0) {
           visitedArray[j] = 1;
@@ -854,7 +854,7 @@ void printUserScores(struct User** users, int* m) {
           ++gameCount;
         }
       }
-      printf("\n%s %d oyun oynadi\n\n", currentUsername, gameCount);
+      printf("\n%s played %d games\n\n", currentUsername, gameCount);
     }
   }
   free(visitedArray);
@@ -870,9 +870,9 @@ void runMainMenu(struct User** users, int* m) {
   do {
     isValid = 1;
     printf(
-        "\na. Ana menu:\n\ti. Rastgele Matris Olustur:\n\tii. Dosyadan Matris "
-        "Olustur:\n\tiii. Kullanicilarin Skorlarini Goster:\n\tiv. "
-        "Cikis\n\nSecim: ");
+        "\na. Main menu:\n\ti. Create random matrix:\n\tii. Create matrix from file:"
+        "\n\tiii. Show user scores:\n\tiv. "
+        "Exit\n\nChoice: ");
     scanf("%d", &choice);
     switch (choice) {
       case 1:
@@ -890,7 +890,7 @@ void runMainMenu(struct User** users, int* m) {
       default:
         isValid = 0;
     }
-  } while (isValid == 0 && printf("\n\nYanlis girdi, yeniden dene\n\n"));
+  } while (isValid == 0 && printf("\n\nInvalid input, try again\n\n"));
 }
 
 /*
